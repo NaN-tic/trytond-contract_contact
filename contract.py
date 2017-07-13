@@ -7,6 +7,7 @@ from trytond.pyson import Eval
 
 
 __all__ = ['Contract']
+
 _STATES = {
     'readonly': Eval('state') != 'draft',
 }
@@ -17,9 +18,10 @@ class Contract:
     __metaclass__ = PoolMeta
     __name__ = 'contract'
     contact_address = fields.Many2One('party.address', 'Contact Address',
-        states=_STATES, depends=['state', 'party'],
-        domain=[('party', '=', Eval('party'))])
+        domain=[('party', '=', Eval('party'))],
+        states=_STATES, depends=_DEPENDS+['party'])
 
+    @fields.depends('party')
     def on_change_party(self):
         try:
             super(Contract, self).on_change_party()
@@ -28,6 +30,5 @@ class Contract:
 
         self.contact_address = None
         if self.party:
-            contact_address = self.party.address_get(type='contact')
-            if contact_address:
-                self.contact_address = contact_address
+            if self.party.addresses:
+                self.contact_address = self.party.addresses[0]
