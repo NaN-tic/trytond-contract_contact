@@ -14,8 +14,7 @@ _STATES = {
 _DEPENDS = ['state']
 
 
-class Contract:
-    __metaclass__ = PoolMeta
+class Contract(metaclass=PoolMeta):
     __name__ = 'contract'
     contact_address = fields.Many2One('party.address', 'Contact Address',
         domain=[('party', '=', Eval('party'))],
@@ -23,12 +22,7 @@ class Contract:
 
     @fields.depends('party')
     def on_change_party(self):
-        try:
-            super(Contract, self).on_change_party()
-        except AttributeError:
-            pass
+        super(Contract, self).on_change_party()
 
-        self.contact_address = None
-        if self.party:
-            if self.party.addresses:
-                self.contact_address = self.party.addresses[0]
+        self.contact_address = (self.party.addresses[0]
+            if (self.party and self.party.addresses) else None)
